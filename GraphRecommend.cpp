@@ -2,12 +2,10 @@
 
 GraphRecommend::GraphRecommend(){
     readFileIntoGraph();
-    createGraph();
-    convertToJson();
 }
 
 void GraphRecommend::readFileIntoGraph() {
-    ifstream file("/Users/calebeverett/CLionProjects/Project3/data/title.basics.tsv");
+    ifstream file("../data/title.basics.tsv");
     string line;
     getline(file, line);
 
@@ -62,7 +60,7 @@ void GraphRecommend::readFileIntoGraph() {
     file.close();
 
 
-    file.open("/Users/calebeverett/CLionProjects/Project3/data/title.crew.tsv");
+    file.open("../data/title.crew.tsv");
     getline(file, line);
 
     while(getline(file, id, '\t')){
@@ -93,7 +91,7 @@ void GraphRecommend::readFileIntoGraph() {
         }
     file.close();
 
-    file.open("/Users/calebeverett/CLionProjects/Project3/data/title.ratings.tsv");
+    file.open("../data/title.ratings.tsv");
     getline(file, line);
 
     while(getline(file, id, '\t')){
@@ -113,39 +111,44 @@ void GraphRecommend::readFileIntoGraph() {
 
 }
 
-void GraphRecommend::createGraph() {
-    for(auto itr = movies.begin(); itr != movies.end(); itr++){
-        for(auto itr2 = movies.begin(); itr2 != movies.end(); itr2++){
-            for(auto itr3 = itr->second.genres.begin(); itr3 != itr->second.genres.end(); itr3++){
-                if(itr2->second.genres[itr3->first]){
-                    int weight = getWeight(itr->second, itr2->second);
-                    graph[itr->first][itr2->first] = weight;
-                    graph[itr2->first][itr->first] = weight;
-                }
-            }
-        }
-    }
-}
-
 string GraphRecommend::recommendMovie(string movie){
     string movieID;
-    for(auto itr = movies.begin(); itr != movies.end(); itr++){
-        if(itr->second.title == movie || itr->second.originalTitle == movie){
+    for(auto itr = movies.begin(); itr != movies.end(); itr++) {
+        if (itr->second.title == movie || itr->second.originalTitle == movie) {
             movieID = itr->first;
             break;
         }
     }
 
     if(movies.find(movieID) != movies.end()){
+        if(graph.find(movieID) == graph.end()) {
+            if (movies[movieID].genres.empty()) {
+                for (auto itr = movies.begin(); itr != movies.end(); itr++) {
+                    graph[movieID][itr->first] = getWeight(movies[movieID], movies[itr->first]);
+                }
+            } else {
+                for (auto itr = movies.begin(); itr != movies.end(); itr++) {
+                    for (auto itr2 = movies[itr->first].genres.begin();
+                         itr2 != movies[itr->first].genres.end(); itr2++) {
+                        if (movies[itr->first].genres[itr2->first] && movies[movieID].genres[itr2->first] &&
+                            graph.find(itr->first) == graph.end()) {
+                            graph[movieID][itr->first] = getWeight(movies[movieID], movies[itr->first]);
+                        }
+                    }
+                }
+            }
+        }
+
         int max = 0;
         for(auto itr = graph[movieID].begin(); itr != graph[movieID].end(); itr++){
-            if(itr->second > max){
+            if(itr->second > max && itr->first != movieID){
                 max = itr->second;
             }
         }
         for(auto itr = graph[movieID].begin(); itr != graph[movieID].end(); itr++){
             if(itr->second == max){
-                cout << "Your recommendation is: " << itr->first << "\n";
+                string title = movies[itr->first].title;
+                cout << "Your recommendation is: " << title << "\n";
                 return itr->first;
             }
         }
