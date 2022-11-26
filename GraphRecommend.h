@@ -9,8 +9,8 @@
 
 using namespace std;
 
+//Creates a Movie struct to store all the movie info
 struct Movie{
-
     string title;
     string titleType;
     string originalTitle;
@@ -23,13 +23,14 @@ struct Movie{
 };
 
 class GraphRecommend {
+    //Graph structues
     unordered_map<string, unordered_map<string, int>> graph;
     unordered_map<string, Movie> movies;
 
 public:
     GraphRecommend();
+    //Helper functions
     void readFileIntoGraph();
-    void createGraph();
     int getWeight(Movie movieFrom, Movie movieTo);
     string recommendMovie(string movie);
 };

@@ -5,12 +5,14 @@ GraphRecommend::GraphRecommend(){
 }
 
 void GraphRecommend::readFileIntoGraph() {
+    //Reads in all of the files
     ifstream file("../data/title.basics.tsv");
     string line;
+    //Gets the title section of the file
     getline(file, line);
-
     string id;
     while(getline(file, id, '\t')){
+        //stops the file read if it reaches the end(solves some bugs)
         if(id == "\n")
             break;
         string type;
@@ -31,6 +33,7 @@ void GraphRecommend::readFileIntoGraph() {
         getline(file, runtime, '\t');
         getline(file, genres);
 
+        //Does not include Adult Movies, Tv Episodes, or Videogames
         if(isAdult == "0" && type != "tvEpisode" && type != "videoGame"){
             Movie tempMovie;
             tempMovie.title = name;
@@ -44,6 +47,8 @@ void GraphRecommend::readFileIntoGraph() {
 
             tempMovie.originalTitle = originalTitle;
             tempMovie.titleType = type;
+
+            //Reads in all genres which are seperated by commas
             for (int i = 0; i < genres.length(); i++) {
                 string genre = "";
                 if (genres.at(i) != ',') {
@@ -54,6 +59,7 @@ void GraphRecommend::readFileIntoGraph() {
                 }
             }
 
+            //Adds the movie to the unordered_map
             movies[id] = tempMovie;
         }
     }
@@ -62,7 +68,6 @@ void GraphRecommend::readFileIntoGraph() {
 
     file.open("../data/title.crew.tsv");
     getline(file, line);
-
     while(getline(file, id, '\t')){
         if(id == "\n")
             break;
@@ -73,14 +78,15 @@ void GraphRecommend::readFileIntoGraph() {
         getline(file, writers);
 
 
+        //Only adds directors and writers if they are some in the database
         if(directors != "\\N") {
             string tempDirector;
             stringstream directorStream(directors);
+            //Reads in all directors which are seperated by commas
             while(getline(directorStream, tempDirector, ',')){
                 movies[id].directors.push_back(tempDirector);
             }
         }
-
         if(writers != "\\N") {
             string tempWriter;
             stringstream writerStream(writers);
@@ -88,12 +94,11 @@ void GraphRecommend::readFileIntoGraph() {
                 movies[id].writers.push_back(tempWriter);
             }
         }
-        }
+    }
     file.close();
 
     file.open("../data/title.ratings.tsv");
     getline(file, line);
-
     while(getline(file, id, '\t')){
         if(id == "\n")
             break;
@@ -103,16 +108,16 @@ void GraphRecommend::readFileIntoGraph() {
         getline(file, rating, '\t');
         getline(file, numVotes);
 
+        //Transforms the strings into the necessary data types
         movies[id].rating = stof(rating);
         movies[id].numVotes = stoi(numVotes);
     }
-
     file.close();
-
 }
 
 string GraphRecommend::recommendMovie(string movie){
     string movieID;
+    //Finds the ID of the title (returns the first title that matches
     for(auto itr = movies.begin(); itr != movies.end(); itr++) {
         if (itr->second.title == movie || itr->second.originalTitle == movie) {
             movieID = itr->first;
@@ -120,25 +125,29 @@ string GraphRecommend::recommendMovie(string movie){
         }
     }
 
+    //If the ID exists continue with the recommendation
     if(movies.find(movieID) != movies.end()){
+        //Makes sure a movie isn't added twice
         if(graph.find(movieID) == graph.end()) {
+            //If the movie doesn't include any genres it links it to all other movies
             if (movies[movieID].genres.empty()) {
-                for (auto itr = movies.begin(); itr != movies.end(); itr++) {
+                for (auto itr = movies.begin(); itr != movies.end(); itr++)
+                    //Gets Weights
                     graph[movieID][itr->first] = getWeight(movies[movieID], movies[itr->first]);
-                }
-            } else {
+            }
+            //If it has genres it is linked to every other movie in those genres
+            else {
                 for (auto itr = movies.begin(); itr != movies.end(); itr++) {
-                    for (auto itr2 = movies[itr->first].genres.begin();
-                         itr2 != movies[itr->first].genres.end(); itr2++) {
-                        if (movies[itr->first].genres[itr2->first] && movies[movieID].genres[itr2->first] &&
-                            graph.find(itr->first) == graph.end()) {
+                    for (auto itr2 = movies[itr->first].genres.begin(); itr2 != movies[itr->first].genres.end(); itr2++) {
+                        if (movies[itr->first].genres[itr2->first] && movies[movieID].genres[itr2->first] && graph.find(itr->first) == graph.end())
+                            //Gets Weights
                             graph[movieID][itr->first] = getWeight(movies[movieID], movies[itr->first]);
-                        }
                     }
                 }
             }
         }
 
+        //Finds the max weight then prints it out
         int max = 0;
         for(auto itr = graph[movieID].begin(); itr != graph[movieID].end(); itr++){
             if(itr->second > max && itr->first != movieID){
@@ -148,19 +157,17 @@ string GraphRecommend::recommendMovie(string movie){
         for(auto itr = graph[movieID].begin(); itr != graph[movieID].end(); itr++){
             if(itr->second == max){
                 string title = movies[itr->first].title;
-                cout << "Your recommendation is: " << title << "\n";
-                return itr->first;
+                return title;
             }
         }
     }
-    else{
-        cout << "This movie or show is not included in this streaming package. Please select another movie or show. \n";
-    }
 
+    //If there is no movie or Tv show return empty
     return "";
 }
 
 int GraphRecommend::getWeight(Movie movieFrom, Movie movieTo) {
+    //Crafts the weights based on the different stats of the movies
     int weight = 0;
 
     if(movieFrom.year == movieTo.year)
