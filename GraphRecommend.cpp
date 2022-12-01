@@ -115,8 +115,9 @@ void GraphRecommend::readFileIntoGraph() {
     file.close();
 }
 
-string GraphRecommend::recommendMovie(string movie){
+vector<string> GraphRecommend::recommendMovie(string movie){
     string movieID;
+    vector<string> returnVector;
     //Finds the ID of the title (returns the first title that matches
     for(auto itr = movies.begin(); itr != movies.end(); itr++) {
         if (itr->second.title == movie || itr->second.originalTitle == movie) {
@@ -147,23 +148,25 @@ string GraphRecommend::recommendMovie(string movie){
             }
         }
 
-        //Finds the max weight then prints it out
-        int max = 0;
+        //Finds the 5 max weights then prints it out
+        priority_queue<int> maxes;
         for(auto itr = graph[movieID].begin(); itr != graph[movieID].end(); itr++){
-            if(itr->second > max && itr->first != movieID){
-                max = itr->second;
-            }
+            //Makes sure a movie doesn't point to itself
+            if(itr->first != movieID)
+                maxes.push(itr->second);
         }
-        for(auto itr = graph[movieID].begin(); itr != graph[movieID].end(); itr++){
-            if(itr->second == max){
-                string title = movies[itr->first].title;
-                return title;
-            }
+        int max = maxes.top();
+        //Gets the maxes for the return vector
+        for(int i = 0; i < 5; i ++){
+            string title = findMax(max, movieID, returnVector);
+            returnVector.push_back(title);
+            maxes.pop();
+            max = maxes.top();
         }
     }
 
-    //If there is no movie or Tv show return empty
-    return "";
+    //If there is no movie or Tv show returns an empty vector, else returns the vector
+    return returnVector;
 }
 
 int GraphRecommend::getWeight(Movie movieFrom, Movie movieTo) {
@@ -171,17 +174,23 @@ int GraphRecommend::getWeight(Movie movieFrom, Movie movieTo) {
     int weight = 0;
 
     if(movieFrom.year == movieTo.year)
-        weight += 20;
-    if(movieFrom.year / 10 == movieTo.year / 10)
         weight += 10;
+    if(movieFrom.year / 10 == movieTo.year / 10)
+        weight += 20;
 
     if(movieFrom.titleType == movieTo.titleType)
         weight += 100;
 
+    if(movieTo.title.find(movieFrom.originalTitle) != string::npos)
+        weight += 30;
+
+    if(movieFrom.title.find(movieTo.originalTitle) != string::npos)
+        weight += 30;
+
     for (int i = 0; i < movieFrom.directors.size(); i++) {
         for (int j = 0; j < movieTo.directors.size(); j++) {
             if (movieFrom.directors.at(i) == movieTo.directors.at(j))
-                weight += 100;
+                weight += 40;
         }
     }
     for (int i = 0; i < movieFrom.writers.size(); i++) {
@@ -192,11 +201,33 @@ int GraphRecommend::getWeight(Movie movieFrom, Movie movieTo) {
     }
 
     if(int(movieFrom.rating) == int(movieTo.rating))
-        weight += 40;
+        weight += 20;
 
-    if(int(movieFrom.numVotes / 10) == int(movieTo.numVotes / 10))
-        weight += 30;
+    if(int(movieFrom.numVotes / 1000) == int(movieTo.numVotes / 1000))
+        weight += 20;
 
 
     return weight;
+}
+
+//Function to find the max in the list, because it will need to be called multipe times
+string GraphRecommend::findMax(int max, string movieID, vector<string> maxMovies) {
+    for(auto itr = graph[movieID].begin(); itr != graph[movieID].end(); itr++){
+        if(itr->second == max){
+            string title = movies[itr->first].title;
+
+            bool isIncluded = false;
+            //Fixes a bug when multiple movies have the same weight
+            for(int i = 0; i < maxMovies.size(); i++){
+                //Continues if the movie has already been included
+                if(title == maxMovies[i]){
+                    isIncluded = true;
+                }
+            }
+            if(!isIncluded)
+                return title;
+        }
+    }
+    //If bug occurs returns nothing
+    return "";
 }

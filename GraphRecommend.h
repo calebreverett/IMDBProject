@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <queue>
 
 using namespace std;
 
@@ -32,7 +33,8 @@ public:
     //Helper functions
     void readFileIntoGraph();
     int getWeight(Movie movieFrom, Movie movieTo);
-    string recommendMovie(string movie);
+    vector<string> recommendMovie(string movie);
+    string findMax(int max, string movieID, vector<string> maxMovies);
 };
 
 
