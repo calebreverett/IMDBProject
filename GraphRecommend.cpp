@@ -182,10 +182,10 @@ int GraphRecommend::getWeight(Movie movieFrom, Movie movieTo) {
         weight += 100;
 
     if(movieTo.title.find(movieFrom.originalTitle) != string::npos)
-        weight += 30;
+        weight += 10;
 
     if(movieFrom.title.find(movieTo.originalTitle) != string::npos)
-        weight += 30;
+        weight += 10;
 
     for (int i = 0; i < movieFrom.directors.size(); i++) {
         for (int j = 0; j < movieTo.directors.size(); j++) {
