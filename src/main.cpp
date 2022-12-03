@@ -1,12 +1,31 @@
 #include <iostream>
 #include "GraphRecommend.h"
+#include "HashRecommend.h"
 using namespace std;
 
 int main() {
     //Creates graph object (takes a few seconds due to size of dataset)
     GraphRecommend graph;
+    //Creates hash object (takes about the same time as graph to make)
+    HashRecommend hash;
     string movie;
 
+    //Ask for graph or hash structure
+    cout<<"Would you like to use a graph or hash structure (type \"graph\" for a graph, and \"hash\" for a hash)"<<'\n';
+    string choice;
+    cin>>choice;
+
+    //use a boolean to detect if it's a graph or hash
+    bool isHash;
+    if(choice == "hash") {
+        cout<<"You have chosen hash"<<'\n';
+        isHash = true;
+    }
+    else {
+        cout<<"You have chosen graph"<<'\n';
+        isHash = false;
+    }
+    
     //While loop in order to get multiple recommendations
     while(true) {
         //Prompt
@@ -24,7 +43,8 @@ int main() {
 
         vector<string> movieRecs;
         //Gets the movie rec (takes a few seconds due to size of dataset)
-        movieRecs = graph.recommendMovie(movie);
+        if(!isHash) movieRecs = graph.recommendMovie(movie);
+        else movieRecs = hash.Recommend(movie);
 
         //Prints the necessary information (May be changed with the UI integration)
         if(!movieRecs.empty())

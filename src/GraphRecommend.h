@@ -1,27 +1,15 @@
 #ifndef PROJECT3_GRAPHRECOMMEND_H
 #define PROJECT3_GRAPHRECOMMEND_H
 
-#include <vector>
-#include <unordered_map>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <queue>
 
-using namespace std;
+//The Movie Struct was extracted from this file into it's own file so that it can be used for HashRecommmend
+#include "Movie.h"
 
-//Creates a Movie struct to store all the movie info
-struct Movie{
-    string title;
-    string titleType;
-    string originalTitle;
-    float rating = 0.0;
-    int numVotes = 0;
-    int year = 0;
-    unordered_map<string, bool> genres;
-    vector<string> writers;
-    vector<string> directors;
-};
+using namespace std;
 
 class GraphRecommend {
     //Graph structues
