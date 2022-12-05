@@ -1,0 +1,4 @@
+C:\Users\Logan\source\repos\IMDBProj\IMDBProj\x64\Debug\IMDBProj.vcxproj.AssemblyReference.cache
+C:\Users\Logan\source\repos\IMDBProj\IMDBProj\x64\Debug\IMDBProj.vcxproj.SuggestedBindingRedirects.cache
+C:\Users\Logan\source\repos\IMDBProj\IMDBProj\x64\Debug\IMDBProj.MyForm.resources
+C:\Users\Logan\source\repos\IMDBProj\IMDBProj\x64\Debug\IMDBProj.vcxproj.GenerateResource.cache
